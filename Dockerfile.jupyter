@@ -1,0 +1,36 @@
+FROM jupyter/scipy-notebook:python-3.11
+
+USER root
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    postgresql-client \
+    curl \
+    vim \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+USER jovyan
+
+# Copy requirements file
+COPY requirements-jupyter.txt /tmp/requirements-jupyter.txt
+
+# Install Python dependencies for ETL, API calls, and data processing
+RUN pip install --no-cache-dir -r /tmp/requirements-jupyter.txt
+
+# Create working directories
+RUN mkdir -p /home/jovyan/work/notebooks && \
+    mkdir -p /home/jovyan/work/etl && \
+    mkdir -p /home/jovyan/work/api && \
+    mkdir -p /home/jovyan/data && \
+    mkdir -p /home/jovyan/scripts
+
+# Set working directory
+WORKDIR /home/jovyan/work
+
+# Expose Jupyter port
+EXPOSE 8888
+
+# Start Jupyter Lab
+CMD ["start-notebook.sh", "--NotebookApp.token=''", "--NotebookApp.password=''"]
